@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A-Level Study Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- TOP HEADER / NAV -->
+    <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <i data-lucide="graduation-cap" class="w-6 h-6 text-slate-950 stroke-[2.5]"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-white leading-tight">A-Level Study Tracker</h1>
+                        <p class="text-xs text-slate-400">Singapore GCE A-Level Syllabus</p>
+                    </div>
+                </div>
+
+                <!-- Global Stats Quick Badge & Backup Options -->
+                <div class="flex items-center space-x-3">
+                    <div id="header-quick-stats" class="hidden md:flex items-center space-x-4 bg-slate-950/60 border border-slate-800 px-3.5 py-1.5 rounded-full">
+                        <div class="flex items-center space-x-2 text-xs">
+                            <span class="text-slate-400">Overall Progress:</span>
+                            <span id="header-overall-pct" class="font-bold text-emerald-400">0%</span>
+                        </div>
+                        <div class="w-px h-3 bg-slate-800"></div>
+                        <div class="flex items-center space-x-2 text-xs">
+                            <span class="text-slate-400">TYS Completed:</span>
+                            <span id="header-tys-count" class="font-semibold text-slate-200">0/0</span>
+                        </div>
+                    </div>
+
+                    <!-- Export/Backup Button for Offline Browser Use -->
+                    <button onclick="exportData()" title="Save / Export Backup Data" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span class="hidden sm:inline">Export Backup</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-1 border-t border-slate-800/60 overflow-x-auto py-2 scrollbar-none" id="main-nav-tabs">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 whitespace-nowrap">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('tys')" id="nav-tys" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="file-check-2" class="w-4 h-4"></i>
+                    <span>TYS Checklist</span>
+                </button>
+                <button onclick="switchTab('prelims')" id="nav-prelims" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                    <span>Prelim Papers</span>
+                </button>
+                
+                <div class="h-4 my-auto w-px bg-slate-800 mx-1"></div>
+
+                <!-- Subject Tabs -->
+                <button onclick="switchSubject('h2_math')" id="nav-sub-h2_math" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                    <span>H2 Math</span>
+                </button>
+                <button onclick="switchSubject('h2_physics')" id="nav-sub-h2_physics" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="atom" class="w-4 h-4"></i>
+                    <span>H2 Physics</span>
+                </button>
+                <button onclick="switchSubject('h2_chemistry')" id="nav-sub-h2_chemistry" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                    <span>H2 Chemistry</span>
+                </button>
+                <button onclick="switchSubject('h1_econs')" id="nav-sub-h1_econs" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>H1 Economics</span>
+                </button>
+                <button onclick="switchSubject('h1_gp')" id="nav-sub-h1_gp" class="tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap">
+                    <i data-lucide="globe-2" class="w-4 h-4"></i>
+                    <span>H1 General Paper</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="space-y-6">
+            <!-- Top Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+                        <span>Overall Completion</span>
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span id="dash-overall-pct" class="text-3xl font-bold text-white">0%</span>
+                        <span id="dash-overall-count" class="text-xs text-slate-400">0/0 items</span>
+                    </div>
+                    <div class="mt-3 w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="dash-overall-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+                        <span>TYS Papers Done</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span id="dash-tys-pct" class="text-3xl font-bold text-white">0%</span>
+                        <span id="dash-tys-count" class="text-xs text-slate-400">0/0 papers</span>
+                    </div>
+                    <div class="mt-3 w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="dash-tys-bar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+                        <span>Prelim Papers Done</span>
+                        <i data-lucide="file-check" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span id="dash-prelim-pct" class="text-3xl font-bold text-white">0%</span>
+                        <span id="dash-prelim-count" class="text-xs text-slate-400">0/0 papers</span>
+                    </div>
+                    <div class="mt-3 w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="dash-prelim-bar" class="bg-purple-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+                        <span>Avg Confidence Rating</span>
+                        <i data-lucide="star" class="w-4 h-4 text-amber-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span id="dash-avg-rating" class="text-3xl font-bold text-white">0.0</span>
+                        <span class="text-xs text-amber-400/90 font-medium">out of 5.0 ★</span>
+                    </div>
+                    <p class="mt-3 text-[11px] text-slate-500">Based on self-assessed chapter ratings</p>
+                </div>
+            </div>
+
+            <!-- Subject Progress Section -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Subject Syllabus Overview</h2>
+                        <p class="text-xs text-slate-400">Completion based on individual SEAB Learning Outcome checklists</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="dashboard-subject-cards">
+                    <!-- Cards dynamically rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. TYS CHECKLIST VIEW -->
+        <section id="view-tys" class="hidden space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="file-check-2" class="w-5 h-5 text-blue-400"></i>
+                        Ten-Year Series (TYS) Papers
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Track completed papers, scores, and exam dates across 2010–2023</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="text" id="tys-search" oninput="renderTYS()" placeholder="Search paper or subject..." 
+                           class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                    <select id="tys-filter-subject" onchange="renderTYS()" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="ALL">All Subjects</option>
+                        <option value="H2 Mathematics">H2 Mathematics</option>
+                        <option value="H2 Physics">H2 Physics</option>
+                        <option value="H2 Chemistry">H2 Chemistry</option>
+                        <option value="H1 Economics">H1 Economics</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">Done</th>
+                                <th class="py-3 px-4">Year</th>
+                                <th class="py-3 px-4">Subject</th>
+                                <th class="py-3 px-4">Paper</th>
+                                <th class="py-3 px-4">Date Completed</th>
+                                <th class="py-3 px-4">Score (%)</th>
+                                <th class="py-3 px-4">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tys-table-body" class="divide-y divide-slate-800/60">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. PRELIM PAPERS VIEW -->
+        <section id="view-prelims" class="hidden space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5 text-purple-400"></i>
+                        Prelim Exam Papers
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Log school prelim practice papers, mistakes, and revision status</p>
+                </div>
+                <button onclick="addPrelimRow()" class="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-emerald-600/20">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Add New Paper</span>
+                </button>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">Done</th>
+                                <th class="py-3 px-4">Subject</th>
+                                <th class="py-3 px-4">School</th>
+                                <th class="py-3 px-4">Year</th>
+                                <th class="py-3 px-4">Paper / Section</th>
+                                <th class="py-3 px-4">Score (%)</th>
+                                <th class="py-3 px-4">Mistakes / Weak Areas</th>
+                                <th class="py-3 px-4 w-12 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prelims-table-body" class="divide-y divide-slate-800/60">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SUBJECT TOPICS VIEW -->
+        <section id="view-subject" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 id="subject-view-title" class="text-xl font-bold text-white flex items-center gap-2.5">
+                        <!-- Dynamic Title -->
+                    </h2>
+                    <p id="subject-view-desc" class="text-xs text-slate-400 mt-1 max-w-2xl">
+                        <!-- Dynamic Desc -->
+                    </p>
+                </div>
+                <div class="flex items-center space-x-3 bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl">
+                    <span class="text-xs text-slate-400">Subject Progress:</span>
+                    <span id="subject-view-progress" class="text-lg font-bold text-emerald-400">0%</span>
+                </div>
+            </div>
+
+            <!-- Topics Container -->
+            <div id="subject-topics-container" class="space-y-6">
+                <!-- Dynamically rendered sections and topics -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        const INITIAL_SYLLABUS = {
+            h2_math: {
+                title: "H2 Mathematics (9758)",
+                description: "Full topical revision checklist from your Math syllabus.",
+                topics: [
+                    { id: "m1", section: "Pure Mathematics - Algebra", name: "Graphs & Transformations", outcomes: ["Graph sketching and transformations."] },
+                    { id: "m2", section: "Pure Mathematics - Algebra", name: "Equations & Inequalities", outcomes: ["Simultaneous equations and inequalities."] },
+                    { id: "m3", section: "Pure Mathematics - Algebra", name: "Functions", outcomes: ["Domain, range, composite, and inverse functions."] },
+                    { id: "m4", section: "Pure Mathematics - Algebra", name: "Sequences & Series", outcomes: ["AP, GP, and Maclaurin series."] },
+                    { id: "m5", section: "Pure Mathematics - Vectors", name: "Vectors 1, 2 & 3", outcomes: ["Lines, planes, scalar and vector products."] },
+                    { id: "m6", section: "Pure Mathematics - Calculus", name: "Differentiation & Apps", outcomes: ["Rules, tangents, normals, and optimization."] },
+                    { id: "m7", section: "Pure Mathematics - Calculus", name: "Integration & DEs", outcomes: ["Techniques, volumes, and differential equations."] },
+                    { id: "m8", section: "Pure Mathematics - Complex Numbers", name: "Complex Numbers", outcomes: ["Cartesian, polar, exponential forms, and loci."] },
+                    { id: "m9", section: "Statistics", name: "Probability & Distributions", outcomes: ["Permutations, combinations, Binomial, and Normal distribution."] },
+                    { id: "m10", section: "Statistics", name: "Inference & Regression", outcomes: ["Sampling, hypothesis testing, and correlation."] }
+                ]
+            },
+            h2_physics: {
+                title: "H2 Physics (9749)",
+                description: "Full topical revision checklist from your Physics syllabus.",
+                topics: [
+                    { id: "p1", section: "Mechanics", name: "Measurement & Kinematics", outcomes: ["SI units, uncertainties, equations of motion."] },
+                    { id: "p2", section: "Mechanics", name: "Dynamics & Forces", outcomes: ["Newton's laws, momentum, work, energy, power."] },
+                    { id: "p3", section: "Mechanics", name: "Circular & Gravitational Motion", outcomes: ["Centripetal force, orbits, and gravitational fields."] },
+                    { id: "p4", section: "Oscillations & Waves", name: "SHM & Waves", outcomes: ["Simple harmonic motion, superposition, diffraction."] },
+                    { id: "p5", section: "Thermal Physics", name: "Thermal & Ideal Gases", outcomes: ["Kinetic theory, ideal gas equation, first law of thermodynamics."] },
+                    { id: "p6", section: "Electricity & Magnetism", name: "Electric Fields & Circuits", outcomes: ["Coulomb's law, potential, DC circuits, capacitance."] },
+                    { id: "p7", section: "Electricity & Magnetism", name: "Electromagnetism & AC", outcomes: ["Magnetic flux, electromagnetic induction, alternating currents."] },
+                    { id: "p8", section: "Modern Physics", name: "Quantum & Nuclear Physics", outcomes: ["Photoelectric effect, X-rays, radioactive decay, binding energy."] }
+                ]
+            },
+            h2_chemistry: {
+                title: "H2 Chemistry (9729)",
+                description: "Full topical revision checklist from your Chemistry syllabus.",
+                topics: [
+                    { id: "c1", section: "Physical Chemistry", name: "Atomic Structure & Bonding", outcomes: ["Orbitals, ionization energy, ionic/covalent bonding, VSEPR."] },
+                    { id: "c2", section: "Physical Chemistry", name: "Energetics & Kinetics", outcomes: ["Enthalpy changes, Born-Haber cycles, reaction rates, activation energy."] },
+                    { id: "c3", section: "Physical Chemistry", name: "Equilibria", outcomes: ["Chemical equilibria, acid-base, solubility, and electrochemistry."] },
+                    { id: "c4", section: "Inorganic Chemistry", name: "Periodic Table & Transitions", outcomes: ["Periodicity, Group 2/17, and transition elements."] },
+                    { id: "c5", section: "Organic Chemistry", name: "Intro, Alkanes, Alkenes & Arenes", outcomes: ["Isomerism, mechanisms, substitution, addition reactions."] },
+                    { id: "c6", section: "Organic Chemistry", name: "Carbonyls, Acids, Nitrogen & Polymers", outcomes: ["Alcohols, carbonyls, carboxylic acids, amines, condensation polymers."] }
+                ]
+            },
+            h1_econs: {
+                title: "H1 Economics (8823)",
+                description: "Microeconomics and Macroeconomics.",
+                topics: [
+                    { id: "e1", section: "Microeconomics", name: "Price Mechanism & Market Failure", outcomes: ["Demand, supply, elasticity, externalities, and government intervention."] },
+                    { id: "e2", section: "Macroeconomics", name: "Macro Goals & Policies", outcomes: ["Economic growth, inflation, unemployment, fiscal/monetary policies."] }
+                ]
+            },
+            h1_gp: {
+                title: "H1 General Paper (8881)",
+                description: "Essay Writing, Comprehension, and Application.",
+                topics: [
+                    { id: "g1", section: "General Paper", name: "Essay Writing", outcomes: ["Argumentation, global issues, society, ethics, and science."] },
+                    { id: "g2", section: "General Paper", name: "Comprehension & Summary", outcomes: ["Author's intent, vocabulary in context, summary skills."] }
+                ]
+            }
+        };
+
+        let state = {
+            currentTab: 'dashboard',
+            currentSubject: 'h2_math',
+            topics: {},
+            tys: [],
+            prelims: []
+        };
+
+        function initApp() {
+            // Load from localStorage or initialize
+            const saved = localStorage.getItem('alevel_tracker_state_v1');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                } catch(e) {
+                    initDefaultData();
+                }
+            } else {
+                initDefaultData();
+            }
+            renderAll();
+            lucide.createIcons();
+        }
+
+        function initDefaultData() {
+            state.topics = {};
+            Object.keys(INITIAL_SYLLABUS).forEach(subKey => {
+                state.topics[subKey] = {};
+                INITIAL_SYLLABUS[subKey].topics.forEach(t => {
+                    state.topics[subKey][t.id] = { completed: false, rating: 3 };
+                });
+            });
+
+            // Sample TYS Papers
+            state.tys = [
+                { id: 't1', year: 2023, subject: 'H2 Mathematics', paper: 'Paper 1', done: false, date: '', score: '', notes: '' },
+                { id: 't2', year: 2023, subject: 'H2 Mathematics', paper: 'Paper 2', done: false, date: '', score: '', notes: '' },
+                { id: 't3', year: 2022, subject: 'H2 Mathematics', paper: 'Paper 1', done: true, date: '2026-05-10', score: '85', notes: 'Tricky vectors question.' },
+                { id: 't4', year: 2023, subject: 'H2 Physics', paper: 'Paper 2', done: false, date: '', score: '', notes: '' },
+                { id: 't5', year: 2023, subject: 'H2 Chemistry', paper: 'Paper 2', done: false, date: '', score: '', notes: '' }
+            ];
+
+            // Sample Prelim Papers
+            state.prelims = [
+                { id: 'p1', subject: 'H2 Mathematics', school: 'Raffles Institution', year: 2025, paper: 'Prelim Paper 1', done: true, score: '88', mistakes: 'Calculus careless error' },
+                { id: 'p2', subject: 'H2 Physics', school: 'Hwa Chong Institution', year: 2025, paper: 'Prelim Paper 2', done: false, score: '', mistakes: '' }
+            ];
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('alevel_tracker_state_v1', JSON.stringify(state));
+            updateHeaderQuickStats();
+        }
+
+        function switchTab(tabName) {
+            state.currentTab = tabName;
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+
+            // Update nav buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap";
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 whitespace-nowrap";
+            }
+            renderAll();
+        }
+
+        function switchSubject(subjectKey) {
+            state.currentTab = 'subject';
+            state.currentSubject = subjectKey;
+            document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-subject').classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 whitespace-nowrap";
+            });
+            const activeBtn = document.getElementById(`nav-sub-${subjectKey}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 whitespace-nowrap";
+            }
+            renderSubjectView();
+        }
+
+        function renderAll() {
+            updateHeaderQuickStats();
+            if (state.currentTab === 'dashboard') renderDashboard();
+            if (state.currentTab === 'tys') renderTYS();
+            if (state.currentTab === 'prelims') renderPrelims();
+            if (state.currentTab === 'subject') renderSubjectView();
+            lucide.createIcons();
+        }
+
+        function getStats() {
+            let totalTopics = 0;
+            let completedTopics = 0;
+            let totalRatingSum = 0;
+            let ratedCount = 0;
+
+            Object.keys(INITIAL_SYLLABUS).forEach(subKey => {
+                INITIAL_SYLLABUS[subKey].topics.forEach(t => {
+                    totalTopics++;
+                    const data = state.topics[subKey]?.[t.id];
+                    if (data?.completed) completedTopics++;
+                    if (data?.rating) {
+                        totalRatingSum += Number(data.rating);
+                        ratedCount++;
+                    }
+                });
+            });
+
+            const overallPct = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+            const avgRating = ratedCount > 0 ? (totalRatingSum / ratedCount).toFixed(1) : '0.0';
+
+            const tysDone = state.tys.filter(t => t.done).length;
+            const tysTotal = state.tys.length;
+            const tysPct = tysTotal > 0 ? Math.round((tysDone / tysTotal) * 100) : 0;
+
+            const prelimDone = state.prelims.filter(p => p.done).length;
+            const prelimTotal = state.prelims.length;
+            const prelimPct = prelimTotal > 0 ? Math.round((prelimDone / prelimTotal) * 100) : 0;
+
+            return { totalTopics, completedTopics, overallPct, avgRating, tysDone, tysTotal, tysPct, prelimDone, prelimTotal, prelimPct };
+        }
+
+        function updateHeaderQuickStats() {
+            const stats = getStats();
+            document.getElementById('header-overall-pct').innerText = `${stats.overallPct}%`;
+            document.getElementById('header-tys-count').innerText = `${stats.tysDone}/${stats.tysTotal}`;
+        }
+
+        function renderDashboard() {
+            const stats = getStats();
+            document.getElementById('dash-overall-pct').innerText = `${stats.overallPct}%`;
+            document.getElementById('dash-overall-count').innerText = `${stats.completedTopics}/${stats.totalTopics} items`;
+            document.getElementById('dash-overall-bar').style.width = `${stats.overallPct}%`;
+
+            document.getElementById('dash-tys-pct').innerText = `${stats.tysPct}%`;
+            document.getElementById('dash-tys-count').innerText = `${stats.tysDone}/${stats.tysTotal} papers`;
+            document.getElementById('dash-tys-bar').style.width = `${stats.tysPct}%`;
+
+            document.getElementById('dash-prelim-pct').innerText = `${stats.prelimPct}%`;
+            document.getElementById('dash-prelim-count').innerText = `${stats.prelimDone}/${stats.prelimTotal} papers`;
+            document.getElementById('dash-prelim-bar').style.width = `${stats.prelimPct}%`;
+
+            document.getElementById('dash-avg-rating').innerText = stats.avgRating;
+
+            // Render subject cards
+            const container = document.getElementById('dashboard-subject-cards');
+            container.innerHTML = '';
+
+            Object.keys(INITIAL_SYLLABUS).forEach(subKey => {
+                const sub = INITIAL_SYLLABUS[subKey];
+                const subTopics = sub.topics;
+                let subDone = 0;
+                subTopics.forEach(t => {
+                    if (state.topics[subKey]?.[t.id]?.completed) subDone++;
+                });
+                const subPct = subTopics.length > 0 ? Math.round((subDone / subTopics.length) * 100) : 0;
+
+                container.innerHTML += `
+                    <div onclick="switchSubject('${subKey}')" class="bg-slate-950 border border-slate-800 hover:border-slate-700 p-5 rounded-xl cursor-pointer transition-all group">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">${sub.title}</h3>
+                            <span class="text-xs font-bold text-emerald-400">${subPct}%</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">${subDone}/${subTopics.length} topics completed</p>
+                        <div class="mt-4 w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full transition-all duration-500" style="width: ${subPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderTYS() {
+            const search = document.getElementById('tys-search').value.toLowerCase();
+            const filterSub = document.getElementById('tys-filter-subject').value;
+            const tbody = document.getElementById('tys-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = state.tys.filter(item => {
+                const matchSearch = item.subject.toLowerCase().includes(search) || item.paper.toLowerCase().includes(search) || String(item.year).includes(search);
+                const matchSub = filterSub === 'ALL' || item.subject === filterSub;
+                return matchSearch && matchSub;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">No TYS papers found.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="py-3 px-4 text-center">
+                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTYS('${item.id}')" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                        </td>
+                        <td class="py-3 px-4 font-semibold text-slate-200">${item.year}</td>
+                        <td class="py-3 px-4 text-slate-300">${item.subject}</td>
+                        <td class="py-3 px-4 text-slate-300">${item.paper}</td>
+                        <td class="py-3 px-4">
+                            <input type="date" value="${item.date}" onchange="updateTYSField('${item.id}', 'date', this.value)" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="number" min="0" max="100" value="${item.score}" placeholder="%" onchange="updateTYSField('${item.id}', 'score', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="text" value="${item.notes}" placeholder="Add notes..." onchange="updateTYSField('${item.id}', 'notes', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleTYS(id) {
+            const item = state.tys.find(t => t.id === id);
+            if (item) {
+                item.done = !item.done;
+                saveState();
+                renderTYS();
+            }
+        }
+
+        function updateTYSField(id, field, value) {
+            const item = state.tys.find(t => t.id === id);
+            if (item) {
+                item[field] = value;
+                saveState();
+            }
+        }
+
+        function renderPrelims() {
+            const tbody = document.getElementById('prelims-table-body');
+            tbody.innerHTML = '';
+
+            if (state.prelims.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No prelim papers logged yet. Click 'Add New Paper' above.</td></tr>`;
+                return;
+            }
+
+            state.prelims.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="py-3 px-4 text-center">
+                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="togglePrelim('${item.id}')" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                        </td>
+                        <td class="py-3 px-4 text-slate-300">
+                            <select onchange="updatePrelimField('${item.id}', 'subject', this.value)" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200">
+                                <option ${item.subject === 'H2 Mathematics' ? 'selected' : ''}>H2 Mathematics</option>
+                                <option ${item.subject === 'H2 Physics' ? 'selected' : ''}>H2 Physics</option>
+                                <option ${item.subject === 'H2 Chemistry' ? 'selected' : ''}>H2 Chemistry</option>
+                                <option ${item.subject === 'H1 Economics' ? 'selected' : ''}>H1 Economics</option>
+                            </select>
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="text" value="${item.school}" placeholder="School name" onchange="updatePrelimField('${item.id}', 'school', this.value)" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="number" value="${item.year}" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs" onchange="updatePrelimField('${item.id}', 'year', this.value)">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="text" value="${item.paper}" placeholder="Paper 1 / Paper 2" onchange="updatePrelimField('${item.id}', 'paper', this.value)" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="number" min="0" max="100" value="${item.score}" placeholder="%" onchange="updatePrelimField('${item.id}', 'score', this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                        <td class="py-3 px-4">
+                            <input type="text" value="${item.mistakes}" placeholder="Weak areas..." onchange="updatePrelimField('${item.id}', 'mistakes', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs">
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="deletePrelim('${item.id}')" class="text-slate-500 hover:text-red-400 p-1 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function addPrelimRow() {
+            state.prelims.push({
+                id: 'p_' + Date.now(),
+                subject: 'H2 Mathematics',
+                school: '',
+                year: 2025,
+                paper: 'Paper 1',
+                done: false,
+                score: '',
+                mistakes: ''
+            });
+            saveState();
+            renderPrelims();
+        }
+
+        function togglePrelim(id) {
+            const item = state.prelims.find(p => p.id === id);
+            if (item) {
+                item.done = !item.done;
+                saveState();
+            }
+        }
+
+        function updatePrelimField(id, field, value) {
+            const item = state.prelims.find(p => p.id === id);
+            if (item) {
+                item[field] = value;
+                saveState();
+            }
+        }
+
+        function deletePrelim(id) {
+            state.prelims = state.prelims.filter(p => p.id !== id);
+            saveState();
+            renderPrelims();
+        }
+
+        function renderSubjectView() {
+            const subKey = state.currentSubject;
+            const sub = INITIAL_SYLLABUS[subKey];
+            if (!sub) return;
+
+            document.getElementById('subject-view-title').innerHTML = `<i data-lucide="book-open" class="w-5 h-5 text-emerald-400"></i> ${sub.title}`;
+            document.getElementById('subject-view-desc').innerText = sub.description;
+
+            const topics = sub.topics;
+            let doneCount = 0;
+            topics.forEach(t => {
+                if (state.topics[subKey]?.[t.id]?.completed) doneCount++;
+            });
+            const pct = topics.length > 0 ? Math.round((doneCount / topics.length) * 100) : 0;
+            document.getElementById('subject-view-progress').innerText = `${pct}%`;
+
+            // Group by section
+            const sections = {};
+            topics.forEach(t => {
+                if (!sections[t.section]) sections[t.section] = [];
+                sections[t.section].push(t);
+            });
+
+            const container = document.getElementById('subject-topics-container');
+            container.innerHTML = '';
+
+            Object.keys(sections).forEach(sectionName => {
+                let sectionHTML = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="bg-slate-950 px-6 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                            <h3 class="font-bold text-sm text-slate-200">${sectionName}</h3>
+                        </div>
+                        <div class="divide-y divide-slate-800/60">
+                `;
+
+                sections[sectionName].forEach(t => {
+                    const tData = state.topics[subKey]?.[t.id] || { completed: false, rating: 3 };
+                    sectionHTML += `
+                        <div class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-800/20 transition-colors">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" ${tData.completed ? 'checked' : ''} onchange="toggleTopic('${subKey}', '${t.id}')" class="mt-1 w-4 h-4 rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white ${tData.completed ? 'line-through text-slate-400' : ''}">${t.name}</h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">${t.outcomes.join(', ')}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 self-end sm:self-center">
+                                <span class="text-xs text-slate-400">Confidence:</span>
+                                <select onchange="updateTopicRating('${subKey}', '${t.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-amber-400 font-medium">
+                                    <option value="1" ${tData.rating == 1 ? 'selected' : ''}>★ 1 - Weak</option>
+                                    <option value="2" ${tData.rating == 2 ? 'selected' : ''}>★★ 2 - Fair</option>
+                                    <option value="3" ${tData.rating == 3 ? 'selected' : ''}>★★★ 3 - Good</option>
+                                    <option value="4" ${tData.rating == 4 ? 'selected' : ''}>★★★★ 4 - Strong</option>
+                                    <option value="5" ${tData.rating == 5 ? 'selected' : ''}>★★★★★ 5 - Mastered</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                sectionHTML += `</div></div>`;
+                container.innerHTML += sectionHTML;
+            });
+            lucide.createIcons();
+        }
+
+        function toggleTopic(subKey, topicId) {
+            if (!state.topics[subKey]) state.topics[subKey] = {};
+            if (!state.topics[subKey][topicId]) state.topics[subKey][topicId] = { completed: false, rating: 3 };
+            state.topics[subKey][topicId].completed = !state.topics[subKey][topicId].completed;
+            saveState();
+            renderSubjectView();
+        }
+
+        function updateTopicRating(subKey, topicId, rating) {
+            if (!state.topics[subKey]) state.topics[subKey] = {};
+            if (!state.topics[subKey][topicId]) state.topics[subKey][topicId] = { completed: false, rating: 3 };
+            state.topics[subKey][topicId].rating = Number(rating);
+            saveState();
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `alevel_tracker_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
